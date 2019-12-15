@@ -11,6 +11,7 @@ import java.util.Date;
 public class Entity {
     @NonNull
     long ChatID;
+    String name;
     Date time;
     boolean inProcess;
 }
