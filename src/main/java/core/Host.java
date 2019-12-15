@@ -49,7 +49,7 @@ public class Host {
         return -1;
     }
 
-    private String findInHosts(long ChatID){
+    public String findInHosts(long ChatID){
         for(EntityArray host: hosts)
             if (host.find(ChatID)!=-1)
                 return host.getName();

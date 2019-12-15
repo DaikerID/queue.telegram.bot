@@ -52,7 +52,7 @@ public class EntityArray {
             }
             if (array.size() == 1)
                 this.start();
-            return index;
+            return find(ChatID);
         }
         return -1;
     }
@@ -90,7 +90,7 @@ public class EntityArray {
         lock.writeLock().lock();
         try{
             for(Entity item:array){
-                if (item.getChatID()==ChatID) {
+                if (item.getChatID() == ChatID) {
                     exist = true;
                     break;
                 }
@@ -151,15 +151,15 @@ public class EntityArray {
     public List<String> arrayToString(PERMISSION permission){
         int index=0;
         List<String> stringList=new ArrayList<String>();
-        SimpleDateFormat formatForDateNow = new SimpleDateFormat("hh:mm:ss k");
+        SimpleDateFormat formatForDateNow = new SimpleDateFormat("kk:mm:ss");
         for(Entity item:array){
             if (index==0){
                 switch (permission){
                     case USER:
-                        stringList.add(index+". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                        stringList.add("In Process. ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
                         break;
                     case ADMIN:
-                        stringList.add(index + "Name: " + item.getName() + ". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                        stringList.add("In Process. Name: " + item.getName() + ". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
                         break;
                 }
             }
@@ -169,7 +169,7 @@ public class EntityArray {
                         stringList.add(index+". ChatID: " + item.getChatID());
                         break;
                     case ADMIN:
-                        stringList.add(index + "Name: " + item.getName() + ". ChatID: " + item.getChatID());
+                        stringList.add(index + ". Name: " + item.getName() + ". ChatID: " + item.getChatID());
                         break;
                 }
             index++;

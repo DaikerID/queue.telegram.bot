@@ -5,6 +5,7 @@ import commandState.CommandStateController;
 import commandState.State;
 import commandState.UserState;
 import core.Host;
+import core.PERMISSION;
 import core.STATUS;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -88,10 +89,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         //delete User from Queue by ChatId
         if (message != null && CommandStateController.getCommand(message.getChatId()) == State.DEL_QUEUE && message.hasText()) {
-
+            long chatId = Long.valueOf(message.getText());
             CommandStateController.setCommand(new UserState(message.getChatId(), State.NULL));
             if (message.hasText()) {
-                //Queue.delete(Queue.userInQueue(ChatID), ChatID);
+                host.removeFromHost(chatId);
                 sendMsg(message.getChatId(), "Удаление завершено", 0);
             }
 
@@ -136,40 +137,33 @@ public class TelegramBot extends TelegramLongPollingBot {
             case "Занять очередь":
                 if (!host.getNameList(STATUS.OPEN).isEmpty()) {
                     sendMsg(message.getChatId(), "Выберите интересующую вас очередь", 5);
-                    CommandStateController.setCommand(new UserState(message.getChatId(), State.ADD_IN_QUEUE));
+                    CommandStateController.setCommand(new UserState(message.getChatId(), State.ADD_IN_QUEUE,
+                            message.getChat().getFirstName()));
 
                 } else sendMsg(message.getChatId(), "Извините, на данный момент нет доступных ресурсов!", 1);
                 break;
 
             case "Посмотреть позицию":
-                //TODO cделать вывод позиции пользователя в очереди и в процссоре, если он там
-//                /*if (Queue.userInQueue(ChatID) != -1) {
-//                        int kol = Queue.outQueue(Queue.userInQueue(message.getChatId()), message.getChatId());
-//                        if (kol == -1)
-//                            kol = 0;
-//
-//                        sendMsg(message.getChatId(), "Ваша позиция в очереди к ресурсу "+
-//                                String.valueOf(Queue.userInQueue(message.getChatId())) + " - "
-//                                + String.valueOf(kol),1);
-//                        sendMsg(message.getChatId(),"Ваш ChatId - " + String.valueOf(message.getChatId()), 1);*/
-//                } else if (Queue.userInProcessor(message.getChatId())!= -1) {
-//                    sendMsg(message,"Ваша очередь уже подошла, пройдите к столу номер "+ String.valueOf(Queue.userInProcessor(message.getChatId())),3);
-//                } else
-//                    sendMsg(message.getChatId(), "Вы еще не заняли очередь к столу, чтобы это сделать, нахмите кнопку <Занять очередь>", 1);*
-                sendMsg(message.getChatId(), "Функция пока недоступна", 1);
+                int position = host.entityStatus(message.getChatId());
+                if (position>0) {
+                        sendMsg(message.getChatId(), "Ваша позиция в очереди -"+
+                                String.valueOf(position-1),1);
+                        sendMsg(message.getChatId(),"Ваш ChatId - " + String.valueOf(message.getChatId()), 1);
+                } else if (position == 0) {
+                    sendMsg(message.getChatId(),"Ваша очередь уже подошла, пройдите к "+ host.findInHosts(message.getChatId()),3);
+                } else
+                    sendMsg(message.getChatId(), "Вы еще не заняли очередь, чтобы это сделать, нахмите кнопку <Занять очередь>", 1);
                 CommandStateController.setCommand(new UserState(message.getChatId(), State.DEFAULT));
                 break;
 
             case "Выйти из очереди":
-                //TODO сделать выход из очереди только по ChatID
-//                host.removeFromHost();
-//                sendMsg(message.getChatId(), "Вы вышли из очереди, теперь если вы снова захотите занять место, вы попадете в конец очереди", 1);
-                sendMsg(message.getChatId(), "Функция пока недоступна", 1);
+                host.removeFromHost(message.getChatId());
+                sendMsg(message.getChatId(), "Вы вышли из очереди, теперь если вы снова захотите занять место, вы попадете в конец очереди", 1);
                 CommandStateController.setCommand(new UserState(message.getChatId(), State.DEFAULT));
                 break;
 
             case "Закончить":
-                //TODO сделать завершение из процесса по chat id
+                host.removeFromHost(message.getChatId());
                 sendMsg(message.getChatId(), "Всего хорошего!", 1);
                 CommandStateController.setCommand(new UserState(message.getChatId(), State.DEFAULT));
                 break;
@@ -199,7 +193,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         sendMsg(message.getChatId(), "Вы должны ввести имя ресурса через пробел после команды /addresourse\n" +
                                 "Например - /addresourse Иван", 0);
                     } else {
-                        //TODO сделать ввод времени
+                        //TODO сделать ввод времени (for Pigor)
                         String name = message.getText().substring(new String("/addresourse").length() + 1);
                         if (host.addHost(5 * 60000, name) == 1) {
                             sendMsg(message.getChatId(), "Ресурс с таким именем уже существует!", 0);
@@ -310,7 +304,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void messageCommandPostProcessing(Update update) {
         String call_data = update.getCallbackQuery().getData();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-
         switch (CommandStateController.getCommand(chatId)) {
             case CHANGE_PASSWORD:
                 //Queue.addList(data);
@@ -339,24 +332,26 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 break;
             case GET_RESOURCE_INFO:
-                sendMsg(chatId, "Функция пока недоступна", 1);
-               //TODO вывод инфы о ресурсе по имени
+                host.hostStatus(call_data);
+                sendMsg(chatId, host.hostStatus(call_data), 1);
+
                 CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
 
                 break;
             case GET_RESOURCE_PROC:
-                if (/*Queue.getWorkerChatID(data) != 0*/false) {
-                    sendMsg(chatId, "Выполняемый процесс в ресуре номер " + call_data + ": "
-                            + "ChatID - " + /*String.valueOf(Queue.getWorkerChatID(data))+"; "
-                            +*/ "Номер талона - " /*+String.valueOf(Queue.getWorkerNumber(data))*/, 0);
-                } else
-                    sendMsg(chatId, "Выполняемый процесс в ресурсе номер " + call_data + ": отсутствует", 0);
+                //TODO Сделать вывод информации о первом человеке в очереди по имени (фор Mishanya)
+//                if () {
+//                    sendMsg(chatId, "Выполняемый процесс в ресуре номер " + call_data + ": "
+//                            + "ChatID - " + /*String.valueOf(Queue.getWorkerChatID(data))+"; "
+//                            +*/ "Номер талона - " /*+String.valueOf(Queue.getWorkerNumber(data))*/, 0);
+//                } else
+//                    sendMsg(chatId, "Выполняемый процесс в ресурсе номер " + call_data + ": отсутствует", 0);
 
                 CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
 
                 break;
             case GET_RESOURCE_QUEUE:
-                List<String> queueInHost = host.queueInHost(call_data);
+                List<String> queueInHost = host.queueInHost(call_data, PERMISSION.ADMIN);
                 if (!queueInHost.isEmpty()) {
                     StringBuilder msg = new StringBuilder();
                     for (String queue : queueInHost) {
@@ -369,33 +364,22 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 break;
             case ABORT:
-                //TODO сделать выброс из процессора по имени ресурса
-                //Queue.abort(data);
-                //sendMsg(chatId, "Выполняемый процесс в ресурсе номер " + call_data + " прерван!", 0);
-                sendMsg(chatId, "Функция пока недоступна", 1);
+                host.removeFromHost(call_data,0);
+                sendMsg(chatId, "Выполняемый процесс в ресурсе " + call_data + " прерван!", 0);
+
                 CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
                 break;
             case ADD_IN_QUEUE:
-                host.addInHost(call_data, chatId);
-                sendMsg(chatId, "Вы заняли очередь к " + call_data, 1);
-                //TODO сделать вывод позиции по chatId
-                /*if (host.)
-                {
-                    int kol = Queue.outQueue(Queue.userInQueue(ChatID), ChatID);
-                    if (kol == -1)
-                        kol = 0;
-
-                    sendMsg(ChatID, "Ваша позиция в очереди к ресурс номер "+
-                            String.valueOf(Queue.userInQueue(ChatID)) + " - "
-                            + String.valueOf(kol),1);
-                    sendMsg(ChatID,"Ваш ChatId - " + String.valueOf(ChatID), 1);
+                int position = host.addInHost(call_data, chatId,update.getCallbackQuery().getMessage().getChat().getFirstName());
+                if (position > 0){
+                    sendMsg(chatId, "Вы заняли очередь к " + call_data + ". Ваша позиция - " + position, 1);
+                }
+                else if (position == 0){
+                    sendMsg(chatId, "Ваша очредь уже подошла! Подходите к " + call_data + ".", 1);
                 }
 
-                else if (Queue.userInProcessor(ChatID)!= -1) {
-                    sendMsg(ChatID,"Ваша очередь уже подошла, пройдите к ресурсу номер "+ String.valueOf(Queue.userInProcessor(ChatID)),1);
-                }
-                CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
-                */
+                else sendMsg(chatId, "Возникла непредвиденная ошибка, повторите попытку позже", 1);
+
                 break;
             case DEFAULT:
                 if (AdminController.isAdmin(chatId)) {
@@ -435,9 +419,9 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         } else if (keyboardMode == 6) {
             sendMessage.setReplyMarkup(KeyboardController.getInlinePlaceSelector(0,/*Queue.getMaxTableSize()*/4));
-        } else if (/*TODO вывод позиции в очереди по ChatID*/ false)
+        } else if (host.entityStatus(chatId)>0)
             sendMessage.setReplyMarkup(KeyboardController.getUserKeyboard(2));
-        else if (/*Queue.userInProcessor(chatId) != -1*/false)
+        else if (host.entityStatus(chatId) == 0)
             sendMessage.setReplyMarkup(KeyboardController.getUserKeyboard(3));
         else
             sendMessage.setReplyMarkup(KeyboardController.getUserKeyboard(1));
