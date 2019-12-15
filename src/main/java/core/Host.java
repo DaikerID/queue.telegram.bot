@@ -152,6 +152,14 @@ public class Host {
         } else return null;
     }
 
+    public String getInfoByIndex(String hostName,int index) {
+        EntityArray host = findHost(hostName);
+        if (host != null)
+            return host.findByIndex(index);
+        else
+            return null;
+    }
+
 
 
 }
