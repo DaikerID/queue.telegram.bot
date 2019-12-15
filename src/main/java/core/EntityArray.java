@@ -181,5 +181,17 @@ public class EntityArray {
         return array.size();
     }
 
+    public String findByIndex(int index){
+        int count=0;
+        SimpleDateFormat formatForDateNow = new SimpleDateFormat("kk:mm:ss");
+        if (array.size()>index)
+            for(Entity item:array){
+                if (index==count&&index==0)
+                    return "In Process. Name: " + item.getName() + ". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime());
+                else if (index==count&&index>0)
+                    return index + ". Name: " + item.getName() + ". ChatID: " + item.getChatID();
+        }
+        return null;
+    }
 
 }
