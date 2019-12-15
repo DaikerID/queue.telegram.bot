@@ -5,7 +5,6 @@ import telegramBot.TelegramBot;
 
 public class Main {
     public static void main(String[] args) {
-        //NewThread.start();
         ApiContextInitializer.init();
         TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
         try {
