@@ -1,4 +1,5 @@
 package core;
+import com.google.inject.internal.asm.$TypeReference;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,9 +17,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class EntityArray {
     @Getter
     final String name;
-
-
-
     List<Entity> array;
     @Getter
     @Setter
@@ -41,13 +39,13 @@ public class EntityArray {
         return new EntityArray(timer,name);
     }
 
-    public int insert(long ChatID){
+    public int insert(long ChatID,String name){
         if (status==STATUS.OPEN) {
             int index = find(ChatID);
             if (index == -1) {
                 lock.readLock().lock();
                 try {
-                    array.add(new Entity(ChatID));
+                    array.add(new Entity(ChatID,name));
                 } finally {
                     lock.readLock().unlock();
                 }
@@ -62,6 +60,19 @@ public class EntityArray {
     public int delete(long ChatID){
         int index=find(ChatID);
         if (index!=-1) {
+            lock.readLock().lock();
+            try{
+                array.remove(index);
+            }
+            finally {
+                lock.readLock().unlock();
+            }
+        }
+        return -1;
+    }
+
+    public int delete(int index){
+        if (index>=0&&index<array.size()) {
             lock.readLock().lock();
             try{
                 array.remove(index);
@@ -95,6 +106,20 @@ public class EntityArray {
             return -1;
     }
 
+    public int entityStatus(long ChatID){
+        int index=0;
+        for (Entity item:array){
+            if (item.getChatID()==ChatID) {
+                if (item.isInProcess() == true)
+                    return 0;
+                else
+                    return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
     private void start(){
         lock.readLock().lock();
         try {
@@ -123,18 +148,38 @@ public class EntityArray {
         }
     }
 
-    public List<String> arrayToString(){
+    public List<String> arrayToString(PERMISSION permission){
         int index=0;
         List<String> stringList=new ArrayList<String>();
         SimpleDateFormat formatForDateNow = new SimpleDateFormat("hh:mm:ss k");
         for(Entity item:array){
             if (index==0){
-                stringList.add(index+". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                switch (permission){
+                    case USER:
+                        stringList.add(index+". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                        break;
+                    case ADMIN:
+                        stringList.add(index + "Name: " + item.getName() + ". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                        break;
+                }
             }
             else
-                stringList.add(index+". ChatID: " + item.getChatID());
+                switch (permission){
+                    case USER:
+                        stringList.add(index+". ChatID: " + item.getChatID());
+                        break;
+                    case ADMIN:
+                        stringList.add(index + "Name: " + item.getName() + ". ChatID: " + item.getChatID());
+                        break;
+                }
             index++;
         }
         return stringList;
     }
+
+    public int entiryCount(){
+        return array.size();
+    }
+
+
 }
