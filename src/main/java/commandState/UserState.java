@@ -5,10 +5,26 @@ import java.util.Objects;
 public class UserState {
     private Long chatId;
     private State commandState;
+    private String name;
 
-    public UserState(Long chatId, State state) {
+
+    public UserState(Long chatId, State commandState, String name) {
         this.chatId = chatId;
-        commandState = state;
+        this.commandState = commandState;
+        this.name = name;
+    }
+
+    public UserState(Long chatId, State commandState) {
+        this.chatId = chatId;
+        this.commandState = commandState;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Long getChatId() {

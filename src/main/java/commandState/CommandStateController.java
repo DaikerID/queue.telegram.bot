@@ -27,4 +27,11 @@ public class CommandStateController {
         } else
             return State.DEFAULT;
     }
+    public static UserState getUser(Long id) {
+        UserState userState = new UserState(id, State.NULL);
+        if (userStates.contains(userState)) {
+            return userStates.get(userStates.indexOf(userState));
+        } else
+            return null;
+    }
 }
