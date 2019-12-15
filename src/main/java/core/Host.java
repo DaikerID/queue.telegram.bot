@@ -142,7 +142,7 @@ public class Host {
                 status="INVALID";
                 break;
         }
-        return "Resource: "+hostName+ "Status: "+status+" Number of entities: "+host.entiryCount();
+        return "Resource: "+hostName+ " Status: "+status+" Number of entities: "+host.entiryCount() + " Max time: " + (int)host.getTimer()/60000;
     }
 
     public List<String> queueInHost(String hostName, PERMISSION permission) {
