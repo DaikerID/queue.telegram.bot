@@ -56,7 +56,7 @@ public class AdminController {
         return login.equals(string);
     }
 
-    public static boolean isItPasswoed(String string){
+    public static boolean isItPasswoed(String string) {
         return password.equals(string);
     }
 
@@ -65,7 +65,7 @@ public class AdminController {
             password = newPassword;
     }
 
-    public static boolean isAuthorizedNow(Long chatId){
+    public static boolean isAuthorizedNow(Long chatId) {
         return adminLoginProccesBuffer.contains(chatId);
     }
 

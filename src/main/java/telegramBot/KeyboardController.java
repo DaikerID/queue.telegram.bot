@@ -52,7 +52,7 @@ public class KeyboardController {
         return row;
     }
 
-    private static List<InlineKeyboardButton> getRow(String resourseName){
+    private static List<InlineKeyboardButton> getRow(String resourseName) {
         List<InlineKeyboardButton> row = new ArrayList<InlineKeyboardButton>();
         row.add(getButton(resourseName));
         return row;
@@ -83,7 +83,7 @@ public class KeyboardController {
         InlineKeyboardMarkup inlinekeyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<List<InlineKeyboardButton>>();
         List<InlineKeyboardButton> row = new ArrayList<InlineKeyboardButton>();
-        for (String resourse: resourseNames) {
+        for (String resourse : resourseNames) {
             keyboard.add(getRow(resourse));
         }
         inlinekeyboard.setKeyboard(keyboard);

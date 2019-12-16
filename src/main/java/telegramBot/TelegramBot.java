@@ -191,23 +191,20 @@ public class TelegramBot extends TelegramLongPollingBot {
                     CommandStateController.setCommand(new UserState(message.getChatId(), State.ADD_RESOURSE));
                     if (message.getText().length() <= new String("/addresourse").length() + 1) {
                         sendMsg(message.getChatId(), "Вы должны ввести имя и время (в минутах) ресурса через пробел после команды /addresourse\n" +
-                                "Например - /addresourse<Пробел>Имя//(два сэша)Число", 0);
+                                "Например - /addresourse<Пробел>Имя//(два слэша)Максимальное доступное время в минутах", 0);
                     } else {
                         String msg = message.getText();
                         String name;
                         Long time;
-                        if (msg.contains("//")){
+                        if (msg.contains("//")) {
                             name = msg.substring(msg.indexOf(" "), msg.lastIndexOf("//"));
 
                             try {
-                                time = Long.valueOf(message.getText().substring(msg.lastIndexOf("//")));
-                            }
-                            catch (NumberFormatException e){
+                                time = Long.valueOf(message.getText().substring(msg.lastIndexOf("//") + 2));
+                            } catch (NumberFormatException e) {
                                 time = 5l;
                             }
-                        }
-                        else
-                        {
+                        } else {
                             name = msg.substring(msg.indexOf(" "));
                             time = 5l;
                         }
@@ -351,15 +348,16 @@ public class TelegramBot extends TelegramLongPollingBot {
                 break;
             case GET_RESOURCE_INFO:
                 host.hostStatus(call_data);
-                //TODO добавить выывод времени нахождения в ресурсе (for Mishanya)
                 sendMsg(chatId, host.hostStatus(call_data), 1);
 
                 CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
 
                 break;
             case GET_RESOURCE_PROC:
-                sendMsg(chatId, "Ресурс " + call_data + "занят сейчас:\n" +
-                        host.getInfoByIndex(call_data, 0), 0);
+                String resourseProcInfo = host.getInfoByIndex(call_data, 0);
+                sendMsg(chatId, "Ресурс " + call_data +
+                        (resourseProcInfo != null ? " занят пользователем:\n" + resourseProcInfo : " сейчас свободен!"),
+                        0);
                 CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
 
                 break;
@@ -388,7 +386,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 } else if (position == 0) {
                     sendMsg(chatId, "Ваша очередь уже подошла! Подходите к " + call_data + ".", 1);
                 } else sendMsg(chatId, "Возникла непредвиденная ошибка, повторите попытку позже", 1);
-                CommandStateController.setCommand(new UserState(chatId,State.DEFAULT));
+                CommandStateController.setCommand(new UserState(chatId, State.DEFAULT));
                 break;
             case DEFAULT:
                 if (AdminController.isAdmin(chatId)) {
@@ -432,8 +430,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         } else if (keyboardMode == 6) {
             sendMessage.setReplyMarkup(KeyboardController.getInlinePlaceSelector(0,/*Queue.getMaxTableSize()*/4));
-        }
-        else
+        } else
             sendMessage.setReplyMarkup(KeyboardController.getUserKeyboard(1));
 
         sendMessage.setChatId(chatId.toString());

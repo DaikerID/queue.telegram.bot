@@ -49,9 +49,9 @@ public class Host {
         return -1;
     }
 
-    public String findInHosts(long ChatID){
-        for(EntityArray host: hosts)
-            if (host.find(ChatID)!=-1)
+    public String findInHosts(long ChatID) {
+        for (EntityArray host : hosts)
+            if (host.find(ChatID) != -1)
                 return host.getName();
         return null;
     }
@@ -83,7 +83,6 @@ public class Host {
     }
 
 
-
     public List<String> getNameList(STATUS status) {
         List<String> stringList = new ArrayList<String>();
         for (EntityArray host : hosts) {
@@ -93,10 +92,10 @@ public class Host {
         return stringList;
     }
 
-    public int addInHost(String hostName, long ChatID,String name) {
+    public int addInHost(String hostName, long ChatID, String name) {
         EntityArray host = findHost(hostName);
         if (host != null) {
-            return host.insert(ChatID,name);
+            return host.insert(ChatID, name);
         } else return -2;
     }
 
@@ -114,35 +113,35 @@ public class Host {
         } else return -2;
     }
 
-    public int removeFromHost(String hostName,int index) {
+    public int removeFromHost(String hostName, int index) {
         EntityArray host = findHost(hostName);
         if (host != null) {
             return host.delete(index);
         } else return -2;
     }
 
-    public int entityStatus(long ChatID){
+    public int entityStatus(long ChatID) {
         EntityArray host = findHost(this.findInHosts(ChatID));
         if (host != null) {
             return host.entityStatus(ChatID);
         } else return -2;
     }
 
-    public String hostStatus(String hostName){
+    public String hostStatus(String hostName) {
         EntityArray host = findHost(hostName);
         String status;
-        switch (host.getStatus()){
+        switch (host.getStatus()) {
             case OPEN:
-                status="OPEN";
+                status = "OPEN";
                 break;
             case CLOSE:
-                status="CLOSE";
+                status = "CLOSE";
                 break;
             default:
-                status="INVALID";
+                status = "INVALID";
                 break;
         }
-        return "Resource: "+hostName+ " Status: "+status+" Number of entities: "+host.entiryCount() + " Max time: " + (int)host.getTimer()/60000;
+        return "Resource: " + hostName + " Status: " + status + " Number of entities: " + host.entiryCount() + " Max time: " + (int) host.getTimer() / 60000;
     }
 
     public List<String> queueInHost(String hostName, PERMISSION permission) {
@@ -152,14 +151,13 @@ public class Host {
         } else return null;
     }
 
-    public String getInfoByIndex(String hostName,int index) {
+    public String getInfoByIndex(String hostName, int index) {
         EntityArray host = findHost(hostName);
         if (host != null)
             return host.findByIndex(index);
         else
             return null;
     }
-
 
 
 }

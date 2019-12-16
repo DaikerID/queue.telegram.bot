@@ -1,4 +1,5 @@
 package core;
+
 public enum STATUS {
     OPEN,
     CLOSE,

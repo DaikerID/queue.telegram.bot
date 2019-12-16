@@ -1,4 +1,5 @@
 package core;
+
 import com.google.inject.internal.asm.$TypeReference;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,32 +21,32 @@ public class EntityArray {
     List<Entity> array;
     @Getter
     @Setter
-    STATUS status=STATUS.OPEN;
+    STATUS status = STATUS.OPEN;
     @Getter
     @Setter
     long timer;
     ReadWriteLock lock = new ReentrantReadWriteLock();
     Thread observer;
 
-    private EntityArray (long timer, String name){
-        array=new LinkedList<Entity>();
-        this.timer=timer;
-        this.name=name;
-        observer=new Thread(new Observer(this));
+    private EntityArray(long timer, String name) {
+        array = new LinkedList<Entity>();
+        this.timer = timer;
+        this.name = name;
+        observer = new Thread(new Observer(this));
         observer.start();
     }
 
-    static synchronized EntityArray init(long timer, String name){
-        return new EntityArray(timer,name);
+    static synchronized EntityArray init(long timer, String name) {
+        return new EntityArray(timer, name);
     }
 
-    public int insert(long ChatID,String name){
-        if (status==STATUS.OPEN) {
+    public int insert(long ChatID, String name) {
+        if (status == STATUS.OPEN) {
             int index = find(ChatID);
             if (index == -1) {
                 lock.readLock().lock();
                 try {
-                    array.add(new Entity(ChatID,name));
+                    array.add(new Entity(ChatID, name));
                 } finally {
                     lock.readLock().unlock();
                 }
@@ -57,47 +58,44 @@ public class EntityArray {
         return -1;
     }
 
-    public int delete(long ChatID){
-        int index=find(ChatID);
-        if (index!=-1) {
+    public int delete(long ChatID) {
+        int index = find(ChatID);
+        if (index != -1) {
             lock.readLock().lock();
-            try{
+            try {
                 array.remove(index);
-            }
-            finally {
+            } finally {
                 lock.readLock().unlock();
             }
         }
         return -1;
     }
 
-    public int delete(int index){
-        if (index>=0&&index<array.size()) {
+    public int delete(int index) {
+        if (index >= 0 && index < array.size()) {
             lock.readLock().lock();
-            try{
+            try {
                 array.remove(index);
-            }
-            finally {
+            } finally {
                 lock.readLock().unlock();
             }
         }
         return -1;
     }
 
-    public int find(long ChatID){
-        boolean exist=false;
-        int index=0;
+    public int find(long ChatID) {
+        boolean exist = false;
+        int index = 0;
         lock.writeLock().lock();
-        try{
-            for(Entity item:array){
+        try {
+            for (Entity item : array) {
                 if (item.getChatID() == ChatID) {
                     exist = true;
                     break;
                 }
                 index++;
             }
-        }
-        finally {
+        } finally {
             lock.writeLock().unlock();
         }
         if (exist)
@@ -106,10 +104,10 @@ public class EntityArray {
             return -1;
     }
 
-    public int entityStatus(long ChatID){
-        int index=0;
-        for (Entity item:array){
-            if (item.getChatID()==ChatID) {
+    public int entityStatus(long ChatID) {
+        int index = 0;
+        for (Entity item : array) {
+            if (item.getChatID() == ChatID) {
                 if (item.isInProcess() == true)
                     return 0;
                 else
@@ -120,27 +118,25 @@ public class EntityArray {
         return -1;
     }
 
-    private void start(){
+    private void start() {
         lock.readLock().lock();
         try {
             Entity item = array.iterator().next();
             item.setInProcess(true);
             item.setTime(new Date());
-        }
-        finally {
+        } finally {
             lock.readLock().unlock();
         }
     }
 
-    public void check(){
-        if (array.iterator().hasNext()){
+    public void check() {
+        if (array.iterator().hasNext()) {
             Entity item = array.iterator().next();
-            if (item.isInProcess()==true&&(item.getTime().getTime()+timer<System.currentTimeMillis())) {
+            if (item.isInProcess() == true && (item.getTime().getTime() + timer < System.currentTimeMillis())) {
                 lock.readLock().lock();
-                try{
+                try {
                     array.remove(0);
-                }
-                finally {
+                } finally {
                     lock.readLock().unlock();
                 }
             }
@@ -148,25 +144,24 @@ public class EntityArray {
         }
     }
 
-    public List<String> arrayToString(PERMISSION permission){
-        int index=0;
-        List<String> stringList=new ArrayList<String>();
+    public List<String> arrayToString(PERMISSION permission) {
+        int index = 0;
+        List<String> stringList = new ArrayList<String>();
         SimpleDateFormat formatForDateNow = new SimpleDateFormat("kk:mm:ss");
-        for(Entity item:array){
-            if (index==0){
-                switch (permission){
+        for (Entity item : array) {
+            if (index == 0) {
+                switch (permission) {
                     case USER:
-                        stringList.add("In Process. ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                        stringList.add("In Process. ChatID: " + item.getChatID() + " Started in: " + formatForDateNow.format(item.getTime()));
                         break;
                     case ADMIN:
-                        stringList.add("In Process. Name: " + item.getName() + ". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime()));
+                        stringList.add("In Process. Name: " + item.getName() + ". ChatID: " + item.getChatID() + " Started in: " + formatForDateNow.format(item.getTime()));
                         break;
                 }
-            }
-            else
-                switch (permission){
+            } else
+                switch (permission) {
                     case USER:
-                        stringList.add(index+". ChatID: " + item.getChatID());
+                        stringList.add(index + ". ChatID: " + item.getChatID());
                         break;
                     case ADMIN:
                         stringList.add(index + ". Name: " + item.getName() + ". ChatID: " + item.getChatID());
@@ -177,20 +172,20 @@ public class EntityArray {
         return stringList;
     }
 
-    public int entiryCount(){
+    public int entiryCount() {
         return array.size();
     }
 
-    public String findByIndex(int index){
-        int count=0;
+    public String findByIndex(int index) {
+        int count = 0;
         SimpleDateFormat formatForDateNow = new SimpleDateFormat("kk:mm:ss");
-        if (array.size()>index)
-            for(Entity item:array){
-                if (index==count&&index==0)
-                    return "In Process. Name: " + item.getName() + ". ChatID: " + item.getChatID()+" Started in: "+formatForDateNow.format(item.getTime());
-                else if (index==count&&index>0)
+        if (array.size() > index)
+            for (Entity item : array) {
+                if (index == count && index == 0)
+                    return "In Process. Name: " + item.getName() + ". ChatID: " + item.getChatID() + " Started in: " + formatForDateNow.format(item.getTime());
+                else if (index == count && index > 0)
                     return index + ". Name: " + item.getName() + ". ChatID: " + item.getChatID();
-        }
+            }
         return null;
     }
 
